@@ -20,6 +20,14 @@ make run
 make
 make test
 
-
 ## Clean
 make clean
+
+## Usage
+The program expects a 24-bit uncompressed BMP file as input.
+If your image is in a different format (e.g., PNG, JPG, or compressed BMP), convert it using ImageMagick:
+
+convert <input file name> -define bmp:format=bmp3 -compress none <output file name>.bmp
+
+Than do make clean and run program using new file.
+
