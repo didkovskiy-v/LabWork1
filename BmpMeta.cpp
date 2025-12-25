@@ -5,6 +5,7 @@
   */
 #include "BmpMeta.h"
 #include <vector>
+#include <iostream>
 
 BmpMeta::BmpMeta(uint32_t w, uint32_t h) {
     fhdr.signature = 0x4D42;
@@ -29,10 +30,14 @@ BmpMeta::BmpMeta(uint32_t w, uint32_t h) {
 bool BmpMeta::read_from(std::ifstream& file) {
     if (!file.read(reinterpret_cast<char*>(&fhdr), sizeof(fhdr))) return false;
     if (fhdr.signature != 0x4D42) return false;
+
     if (!file.read(reinterpret_cast<char*>(&ihdr), sizeof(ihdr))) return false;
-    if (ihdr.header_size != 40 || ihdr.bits_per_pixel != 24 || ihdr.compression != 0) return false;
-    uint32_t hdr_end = sizeof(FileHeader) + ihdr.header_size;
-    if (fhdr.pixel_offset > hdr_end) file.seekg(fhdr.pixel_offset - hdr_end, std::ios::cur);
+
+    if (ihdr.bits_per_pixel != 24 || ihdr.compression != 0 || ihdr.planes != 1) {
+        return false;
+    }
+
+    file.seekg(fhdr.pixel_offset, std::ios::beg);
     return true;
 }
 
