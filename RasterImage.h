@@ -12,6 +12,8 @@
 
 class RasterImage : public Image {
 private:
+    static constexpr uint32_t BYTES_PER_PIXEL = 3;
+    static constexpr uint32_t ROW_ALIGNMENT = 4;
     BmpMeta meta;
     std::vector<uint8_t> pixels;
     uint32_t row_bytes() const;

@@ -9,8 +9,9 @@
 #include <cmath>
 
 uint32_t RasterImage::row_bytes() const {
-    uint32_t w = width();
-    return ((w * 3 + 3) / 4) * 4;
+    uint32_t row_size = width() * BYTES_PER_PIXEL;
+    uint32_t padding = (ROW_ALIGNMENT - (row_size % ROW_ALIGNMENT)) % ROW_ALIGNMENT;
+    return row_size + padding;
 }
 
 bool RasterImage::load(const std::string& filename) {
@@ -135,6 +136,6 @@ void RasterImage::gaussian_blur() {
 }
 
 uint32_t RasterImage::estimate_memory(uint32_t w, uint32_t h) {
-    uint32_t row = ((w * 3 + 3) / 4) * 4;
-    return 54 + row * h;
+    uint32_t row = ((w * BYTES_PER_PIXEL + ROW_ALIGNMENT - 1) / ROW_ALIGNMENT) * ROW_ALIGNMENT;
+    return sizeof(FileHeader) + sizeof(InfoHeader) + row * h;
 }

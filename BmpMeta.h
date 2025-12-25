@@ -35,8 +35,16 @@ struct InfoHeader {
 
 class BmpMeta {
 private:
+    static constexpr uint16_t BMP_SIGNATURE = 0x4D42;
+    static constexpr uint16_t PLANES_COUNT = 1;
+    static constexpr uint16_t COLOR_DEPTH = 24;
+    static constexpr uint32_t COMPRESSION_NONE = 0;
+    static constexpr uint32_t BYTES_PER_PIXEL = 3;
+    static constexpr uint32_t ROW_ALIGNMENT = 4;
+
     FileHeader fhdr;
     InfoHeader ihdr;
+
 public:
     BmpMeta() = default;
     BmpMeta(uint32_t w, uint32_t h);

@@ -5,39 +5,35 @@
   */
 #include "BmpMeta.h"
 #include <vector>
-#include <iostream>
 
 BmpMeta::BmpMeta(uint32_t w, uint32_t h) {
-    fhdr.signature = 0x4D42;
+    fhdr.signature = BMP_SIGNATURE;
     fhdr.reserved1 = 0;
     fhdr.reserved2 = 0;
     fhdr.pixel_offset = 54;
     ihdr.header_size = 40;
     ihdr.img_width = static_cast<int32_t>(w);
     ihdr.img_height = static_cast<int32_t>(h);
-    ihdr.planes = 1;
-    ihdr.bits_per_pixel = 24;
-    ihdr.compression = 0;
+    ihdr.planes = PLANES_COUNT;
+    ihdr.bits_per_pixel = COLOR_DEPTH;
+    ihdr.compression = COMPRESSION_NONE;
     ihdr.h_resolution = 0;
     ihdr.v_resolution = 0;
     ihdr.palette_colors = 0;
     ihdr.important_colors = 0;
-    uint32_t row = ((w * 3 + 3) / 4) * 4;
+    uint32_t row = ((w * BYTES_PER_PIXEL + ROW_ALIGNMENT - 1) / ROW_ALIGNMENT) * ROW_ALIGNMENT;
     ihdr.raw_size = row * h;
     fhdr.file_size = fhdr.pixel_offset + ihdr.raw_size;
 }
 
 bool BmpMeta::read_from(std::ifstream& file) {
     if (!file.read(reinterpret_cast<char*>(&fhdr), sizeof(fhdr))) return false;
-    if (fhdr.signature != 0x4D42) return false;
-
+    if (fhdr.signature != BMP_SIGNATURE) return false;
     if (!file.read(reinterpret_cast<char*>(&ihdr), sizeof(ihdr))) return false;
-
-    if (ihdr.bits_per_pixel != 24 || ihdr.compression != 0 || ihdr.planes != 1) {
-        return false;
-    }
-
-    file.seekg(fhdr.pixel_offset, std::ios::beg);
+    if (ihdr.bits_per_pixel != COLOR_DEPTH || 
+        ihdr.compression != COMPRESSION_NONE) return false;
+    uint32_t hdr_end = sizeof(FileHeader) + ihdr.header_size;
+    if (fhdr.pixel_offset > hdr_end) file.seekg(fhdr.pixel_offset - hdr_end, std::ios::cur);
     return true;
 }
 
@@ -55,7 +51,7 @@ bool BmpMeta::write_to(std::ofstream& file) const {
 void BmpMeta::adjust_after_rotation(uint32_t w, uint32_t h) {
     ihdr.img_width = static_cast<int32_t>(w);
     ihdr.img_height = static_cast<int32_t>(h);
-    uint32_t row = ((w * 3 + 3) / 4) * 4;
+    uint32_t row = ((w * BYTES_PER_PIXEL + ROW_ALIGNMENT - 1) / ROW_ALIGNMENT) * ROW_ALIGNMENT;
     ihdr.raw_size = row * h;
     fhdr.file_size = fhdr.pixel_offset + ihdr.raw_size;
 }
